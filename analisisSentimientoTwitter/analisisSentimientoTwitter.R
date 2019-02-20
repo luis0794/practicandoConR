@@ -35,3 +35,60 @@ tweets <- read.csv("data/tweets_candidatos.csv", stringsAsFactors = F, fileEncod
 
 # Traducción automática, de inglés a español, de la versión del léxico presente en el conjunto de datos "sentiments" de tidytext, con algunas correcciones manuales
 afinn <- read.csv("data/lexico_afinn.en.es.csv", stringsAsFactors = F, fileEncoding = "latin1") %>% tbl_df()
+
+
+#### Peparando los datos ####
+
+# Filtrando por año
+tweets <- 
+  tweets %>%
+  separate(created_at, into = c("Fecha", "Hora"), sep = " ") %>%
+  separate(Fecha, into = c("Dia", "Mes", "Periodo"), sep = "/",
+           remove = FALSE) %>%
+  mutate(Fecha = dmy(Fecha),
+         Semana = week(Fecha) %>% as.factor(),
+         text = tolower(text)) %>%
+  filter(Periodo == 2018)
+
+# Convirtiendo tweets en palabras 
+tweets_afinn <- 
+  tweets %>%
+  unnest_tokens(input = "text", output = "Palabra") %>%
+  inner_join(afinn, ., by = "Palabra") %>%
+  mutate(Tipo = ifelse(Puntuacion > 0, "Positiva", "Negativa")) %>% 
+  rename("Candidato" = screen_name)
+
+# Asignando una puntucacion a cada tweet
+tweets <-
+  tweets_afinn %>%
+  group_by(status_id) %>%
+  summarise(Puntuacion_tuit = mean(Puntuacion)) %>%
+  left_join(tweets, ., by = "status_id") %>% 
+  mutate(Puntuacion_tuit = ifelse(is.na(Puntuacion_tuit), 0, Puntuacion_tuit)) %>% 
+  rename("Candidato" = screen_name)
+
+
+##### Explorando los datos, medias por día #####
+
+# Total
+tweets_afinn %>% count(Candidato)
+
+# Únicas
+tweets_afinn %>% group_by(Candidato) %>% distinct(Palabra) %>% count()
+
+map(c("Positiva", "Negativa"), function(sentimiento) {
+  tweets_afinn %>%
+    filter(Tipo ==  sentimiento) %>%
+    group_by(Candidato) %>%
+    count(Palabra, sort = T) %>%
+    top_n(n = 10, wt = n) %>%
+    ggplot() +
+    aes(Palabra, n, fill = Candidato) +
+    geom_col() +
+    facet_wrap("Candidato", scales = "free") +
+    scale_y_continuous(expand = c(0, 0)) +
+    coord_flip() +
+    labs(title = sentimiento) +
+    tema_graf
+})
+
