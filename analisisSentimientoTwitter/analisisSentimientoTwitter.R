@@ -92,3 +92,63 @@ purrr::map(c("Positiva", "Negativa"), function(sentimiento) {
     tema_graf
 })
 
+# Quitando palabra "no", es muy usuada en oraciones pero no necesariamente significa algo negativo
+tweets_afinn <-
+  tweets_afinn %>%
+  dplyr::filter(Palabra != "no") 
+
+# Obteniendo la media de sentimientos por día
+tweets_afinn_fecha <-
+  tweets_afinn %>%
+  dplyr::group_by(status_id) %>%
+  dplyr::mutate(Suma = mean(Puntuacion)) %>%
+  dpylr::group_by(Candidato, Fecha) %>%
+  dppylr::summarise(Media = mean(Puntuacion))
+
+tweets_afinn_fecha %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Media, color = Candidato) +
+  ggplot2::geom_line() +
+  tema_graf +
+  ggplot2::theme(legend.position = "top")
+
+# Separando tendencias por candidatos
+tweets_afinn_fecha %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Media, color = Candidato) +
+  ggplot2::geom_hline(yintercept = 0, alpha = .35) +
+  ggplot2::geom_line() +
+  ggplot2::facet_grid(Candidato~.) +
+  tema_graf +
+  ggplot2::theme(legend.position = "none")
+
+
+#### Usando LOESS (regression local) ####
+### Una manera en que podemos extraer tendencias es usar el algoritmo de regresión local LOESS
+tweets_afinn_fecha %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Media, color = Candidato) +
+  ggplot2::geom_smooth(method = "loess", fill = NA) +
+  tema_graf
+
+tweets_afinn %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Puntuacion, color = Candidato) +
+  ggplot2::geom_smooth(method = "loess", fill = NA) +
+  tema_graf
+
+tweets_afinn %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Puntuacion, color = Candidato) +
+  ggplot2::geom_point(color = "#E5E5E5") + 
+  ggplot2::geom_smooth(method = "loess", fill = NA) +
+  ggplot2::facet_wrap(~Candidato) +
+  tema_graf
+
+tweets_afinn_fecha %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Media, color = Candidato) +
+  ggplot2::geom_point(color = "#E5E5E5") + 
+  ggplot2::geom_smooth(method = "lm", fill = NA) +
+  ggplot2::facet_wrap(~Candidato) +
+  tema_graf
