@@ -166,3 +166,16 @@ tweets_afinn_fecha %>%
   ggplot2::facet_grid(Candidato~.) +
   tema_graf
 
+
+#### Comparando sentimientos positivos y negativos ####
+tweets_afinn %>%
+  dplyr::count(Candidato, Tipo) %>%
+  dplyr::group_by(Candidato) %>%
+  dplyr::mutate(Proporcion = n / sum(n)) %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Candidato, Proporcion, fill = Tipo) +
+  ggplot2::geom_col() +
+  ggplot2::scale_y_continuous(labels = scales::percent_format()) +
+  tema_graf +
+  ggplot2::theme(legend.position = "top")
+
