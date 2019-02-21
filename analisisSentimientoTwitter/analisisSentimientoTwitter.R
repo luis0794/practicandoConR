@@ -18,12 +18,12 @@ library(scales)
 
 # Se define un tema para facilitar la visualización de los resultados.
 tema_graf <-
-  theme_minimal() +
-  theme(text = element_text(family = "serif"),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "#EBEBEB", colour = NA),
+  ggplot2::theme_minimal() +
+  ggplot2::theme(text = ggplot2::element_text(family = "serif"),
+        panel.grid.minor = ggplot2::element_blank(),
+        strip.background = ggplot2::element_rect(fill = "#EBEBEB", colour = NA),
         legend.position = "none",
-        legend.background = element_rect(fill = "#EBEBEB", colour = NA))
+        legend.background = ggplot2::element_rect(fill = "#EBEBEB", colour = NA))
 
 
 
@@ -42,53 +42,53 @@ afinn <- read.csv("data/lexico_afinn.en.es.csv", stringsAsFactors = F, fileEncod
 # Filtrando por año
 tweets <- 
   tweets %>%
-  separate(created_at, into = c("Fecha", "Hora"), sep = " ") %>%
-  separate(Fecha, into = c("Dia", "Mes", "Periodo"), sep = "/",
+  tidyr::separate(created_at, into = c("Fecha", "Hora"), sep = " ") %>%
+  tidyr::separate(Fecha, into = c("Dia", "Mes", "Periodo"), sep = "/",
            remove = FALSE) %>%
-  mutate(Fecha = dmy(Fecha),
+  dplyr::mutate(Fecha = dmy(Fecha),
          Semana = week(Fecha) %>% as.factor(),
          text = tolower(text)) %>%
-  filter(Periodo == 2018)
+  dplyr::filter(Periodo == 2018)
 
 # Convirtiendo tweets en palabras 
 tweets_afinn <- 
   tweets %>%
-  unnest_tokens(input = "text", output = "Palabra") %>%
-  inner_join(afinn, ., by = "Palabra") %>%
-  mutate(Tipo = ifelse(Puntuacion > 0, "Positiva", "Negativa")) %>% 
+  tidytext::unnest_tokens(input = "text", output = "Palabra") %>%
+  dplyr::inner_join(afinn, ., by = "Palabra") %>%
+  dplyr::mutate(Tipo = ifelse(Puntuacion > 0, "Positiva", "Negativa")) %>% 
   rename("Candidato" = screen_name)
 
 # Asignando una puntucacion a cada tweet
 tweets <-
   tweets_afinn %>%
-  group_by(status_id) %>%
-  summarise(Puntuacion_tuit = mean(Puntuacion)) %>%
-  left_join(tweets, ., by = "status_id") %>% 
-  mutate(Puntuacion_tuit = ifelse(is.na(Puntuacion_tuit), 0, Puntuacion_tuit)) %>% 
+  dplyr::group_by(status_id) %>%
+  dplyr::summarise(Puntuacion_tuit = mean(Puntuacion)) %>%
+  dplyr::left_join(tweets, ., by = "status_id") %>% 
+  dplyr::mutate(Puntuacion_tuit = ifelse(is.na(Puntuacion_tuit), 0, Puntuacion_tuit)) %>% 
   rename("Candidato" = screen_name)
 
 
 ##### Explorando los datos, medias por día #####
 
 # Total
-tweets_afinn %>% count(Candidato)
+tweets_afinn %>% dplyr::count(Candidato)
 
 # Únicas
-tweets_afinn %>% group_by(Candidato) %>% distinct(Palabra) %>% count()
+tweets_afinn %>% dplyr::group_by(Candidato) %>% dplyr::distinct(Palabra) %>% dplyr::count()
 
-map(c("Positiva", "Negativa"), function(sentimiento) {
+purrr::map(c("Positiva", "Negativa"), function(sentimiento) {
   tweets_afinn %>%
-    filter(Tipo ==  sentimiento) %>%
-    group_by(Candidato) %>%
-    count(Palabra, sort = T) %>%
-    top_n(n = 10, wt = n) %>%
-    ggplot() +
-    aes(Palabra, n, fill = Candidato) +
-    geom_col() +
-    facet_wrap("Candidato", scales = "free") +
-    scale_y_continuous(expand = c(0, 0)) +
-    coord_flip() +
-    labs(title = sentimiento) +
+    dplyr::filter(Tipo ==  sentimiento) %>%
+    dplyr::group_by(Candidato) %>%
+    dplyr::count(Palabra, sort = T) %>%
+    dplyr::top_n(n = 10, wt = n) %>%
+    ggplot2::ggplot() +
+    ggplot2::aes(Palabra, n, fill = Candidato) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap("Candidato", scales = "free") +
+    ggplot2::scale_y_continuous(expand = c(0, 0)) +
+    ggplot2::coord_flip() +
+    ggplot2::labs(title = sentimiento) +
     tema_graf
 })
 
