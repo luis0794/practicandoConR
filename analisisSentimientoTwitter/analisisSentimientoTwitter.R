@@ -152,3 +152,17 @@ tweets_afinn_fecha %>%
   ggplot2::geom_smooth(method = "lm", fill = NA) +
   ggplot2::facet_wrap(~Candidato) +
   tema_graf
+
+
+#### Usando la media móvil ####
+# Se crea medias móviles usando rollmean() de zoo. Con esta función se calcula la media de cada tres días y se la grafica con ggplot.
+tweets_afinn_fecha %>%
+  dplyr::group_by(Candidato) %>%
+  dplyr::mutate(MediaR = zoo::rollmean(Media, k = 3, align = "right", na.pad = TRUE)) %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, MediaR, color = Candidato) +
+  ggplot2::geom_hline(yintercept = 0, alpha = .35) +
+  ggplot2::geom_line() +
+  ggplot2::facet_grid(Candidato~.) +
+  tema_graf
+
