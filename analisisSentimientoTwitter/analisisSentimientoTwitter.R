@@ -102,8 +102,8 @@ tweets_afinn_fecha <-
   tweets_afinn %>%
   dplyr::group_by(status_id) %>%
   dplyr::mutate(Suma = mean(Puntuacion)) %>%
-  dpylr::group_by(Candidato, Fecha) %>%
-  dppylr::summarise(Media = mean(Puntuacion))
+  dplyr::group_by(Candidato, Fecha) %>%
+  dplyr::summarise(Media = mean(Puntuacion))
 
 tweets_afinn_fecha %>%
   ggplot2::ggplot() +
@@ -168,6 +168,8 @@ tweets_afinn_fecha %>%
 
 
 #### Comparando sentimientos positivos y negativos ####
+
+# Tweers positivos y negativos, para todo el 2018 y para cada Candidato
 tweets_afinn %>%
   dplyr::count(Candidato, Tipo) %>%
   dplyr::group_by(Candidato) %>%
@@ -176,6 +178,20 @@ tweets_afinn %>%
   ggplot2::aes(Candidato, Proporcion, fill = Tipo) +
   ggplot2::geom_col() +
   ggplot2::scale_y_continuous(labels = scales::percent_format()) +
+  tema_graf +
+  ggplot2::theme(legend.position = "top")
+
+#  Proporción de positiva y negativa por día
+tweets_afinn %>%
+  dplyr::group_by(Candidato, Fecha) %>%
+  dplyr::count(Tipo) %>%
+  dplyr::mutate(Proporcion = n / sum(n)) %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Fecha, Proporcion, fill = Tipo) +
+  ggplot2::geom_col(width = 1) +
+  ggplot2::facet_grid(Candidato~.) +
+  ggplot2::scale_y_continuous(labels = scales::percent_format()) +
+  ggplot2::scale_x_date(expand = c(0, 0)) +
   tema_graf +
   ggplot2::theme(legend.position = "top")
 
