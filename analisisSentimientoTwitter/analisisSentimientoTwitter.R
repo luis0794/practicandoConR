@@ -214,3 +214,22 @@ tweets %>%
   ggplot2::facet_wrap(~Candidato) +
   tema_graf +
   ggplot2::theme(legend.position = "none")
+
+
+#### Usando densidades ####
+
+# Analizando las tendencias de sentimientos usando las funciones de densidad de las puntuaciones
+tweets %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Puntuacion_tuit, color = Candidato) +
+  ggplot2::geom_density() +
+  ggplot2::facet_wrap(~Candidato) +
+  tema_graf
+
+# Observando tendencias a través del tiempo
+tweets %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Puntuacion_tuit, color = Candidato) +
+  ggplot2::geom_density() +
+  ggplot2::facet_grid(Candidato~Mes) +
+  tema_graf
