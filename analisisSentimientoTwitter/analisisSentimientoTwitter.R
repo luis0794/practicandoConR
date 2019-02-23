@@ -195,3 +195,22 @@ tweets_afinn %>%
   tema_graf +
   ggplot2::theme(legend.position = "top")
 
+
+#### Boxplots (diagrama caja y bigotes) ####
+
+# Boxplot por candidato
+tweets %>%
+  ggplot2::ggplot() +
+  ggplot2::aes(Candidato, Puntuacion_tuit, fill = Candidato) +
+  ggplot2::geom_boxplot() +
+  tema_graf
+
+# Boxplots para ver cambios a través del tiempo
+tweets %>%
+  dplyr::mutate(Mes = factor(Mes)) %>% 
+  ggplot2::ggplot() +
+  ggplot2::aes(Mes, Puntuacion_tuit, fill = Candidato) +
+  ggplot2::geom_boxplot(width = 1) +
+  ggplot2::facet_wrap(~Candidato) +
+  tema_graf +
+  ggplot2::theme(legend.position = "none")
